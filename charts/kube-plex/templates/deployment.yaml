@@ -43,7 +43,25 @@ spec:
 {{- if .Values.kubePlex.enabled }}
         # We replace the PMS binary after plex finishes upgrading
         command: ["/bin/bash"]
-        args: ["-c", "echo \"rm -f '/usr/lib/plexmediaserver/Plex Transcoder' && cp /shared/kube-plex '/usr/lib/plexmediaserver/Plex Transcoder'\" >> /etc/cont-init.d/50-plex-update && /init"]
+        args:
+          - -c
+          - |
+            #!/bin/bash
+
+            set -e
+
+            # If Plex Transcoder exists then let copy kube-plex now
+            if [ -f '/usr/lib/plexmediaserver/Plex Transcoder' ]; then
+              rm -f '/usr/lib/plexmediaserver/Plex Transcoder'
+              cp /shared/kube-plex '/usr/lib/plexmediaserver/Plex Transcoder'
+            fi
+
+            # either way add the commands to the update script so that after an update it runs again
+            echo "set -e" >> /etc/cont-init.d/50-plex-update
+            echo "rm -f '/usr/lib/plexmediaserver/Plex Transcoder'" >> /etc/cont-init.d/50-plex-update
+            echo "cp /shared/kube-plex '/usr/lib/plexmediaserver/Plex Transcoder'" >> /etc/cont-init.d/50-plex-update
+
+            /init
 {{- end }}
         # readinessProbe:
         #   httpGet:
@@ -85,16 +103,19 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
-          {{- if .Values.persistence.data.subPath }}
-          subPath: "{{ .Values.persistence.data.subPath }}"
-          {{- end }}
+        {{- if .Values.persistence.data.subPath }}
+          subPath: {{ .Values.persistence.data.subPath }}
+        {{ end }}
         - name: config
           mountPath: /config
-          {{- if .Values.persistence.config.subPath }}
-          subPath: "{{ .Values.persistence.config.subPath }}"
-          {{- end }}
+        {{- if .Values.persistence.config.subPath }}
+          subPath: {{ .Values.persistence.config.subPath }}
+        {{ end }}
         - name: transcode
           mountPath: /transcode
+        {{- if .Values.persistence.transcode.subPath }}
+          subPath: {{ .Values.persistence.transcode.subPath }}
+        {{ end }}
         - name: shared
           mountPath: /shared
         resources:
