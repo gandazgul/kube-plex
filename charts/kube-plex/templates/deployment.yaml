@@ -21,6 +21,16 @@ spec:
         app: {{ template "name" . }}
         release: {{ .Release.Name }}
     spec:
+{{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      dnsConfig:
+{{ toYaml .Values.dnsConfig | indent 8 }}
+{{- end }}
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
       serviceAccountName: {{ if .Values.rbac.create }}{{ template "fullname" . }}{{ else }}{{ .Values.rbac.serviceAccountName | quote }}{{ end }}
       hostname: "{{ template "fullname" . }}"
 {{- if .Values.kubePlex.enabled }}

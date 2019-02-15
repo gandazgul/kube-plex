@@ -19,6 +19,13 @@ claimToken: ""
 # Set the timezone of the plex server
 timezone: Europe/London
 
+# Without this you can't dns resolve anything inside the container
+#dnsPolicy: "None"
+#dnsConfig:
+#  nameservers:
+#    - 8.8.8.8
+#    - 8.8.4.4
+
 service:
   type: ClusterIP
   port: 32400
