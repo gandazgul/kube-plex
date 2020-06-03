@@ -16,12 +16,15 @@ import (
 
 // data pvc name
 var dataPVC = os.Getenv("DATA_PVC")
+var dataSubPath = os.Getenv("DATA_SUBPATH")
 
 // config pvc name
 var configPVC = os.Getenv("CONFIG_PVC")
+var configSubPath = os.Getenv("CONFIG_SUBPATH")
 
 // transcode pvc name
 var transcodePVC = os.Getenv("TRANSCODE_PVC")
+var transcodeSubPath = os.Getenv("TRANSCODE_SUBPATH")
 
 // pms namespace
 var namespace = os.Getenv("KUBE_NAMESPACE")
@@ -121,16 +124,19 @@ func generatePod(cwd string, env []string, args []string) *corev1.Pod {
 						{
 							Name:      "data",
 							MountPath: "/data",
+							subPath: dataSubPath,
 							ReadOnly:  true,
 						},
 						{
 							Name:      "config",
 							MountPath: "/config",
+							subPath: configSubPath,
 							ReadOnly:  true,
 						},
 						{
 							Name:      "transcode",
 							MountPath: "/transcode",
+							subPath: transcodeSubPath
 						},
 					},
 				},

@@ -1,3 +1,27 @@
+{{- define "transcodeClaimName" -}}
+  {{- if .Values.persistence.transcode.claimName }}
+    {{- .Values.persistence.transcode.claimName -}}
+  {{- else }}
+    {{- printf "%s-%s" ( include "fullname" . ) "transcode" -}}
+  {{- end }}
+{{- end }}
+
+{{- define "dataClaimName" -}}
+  {{- if .Values.persistence.data.claimName }}
+    {{- .Values.persistence.data.claimName -}}
+  {{- else }}
+    {{- printf "%s-%s" ( include "fullname" . ) "data" -}}
+  {{- end }}
+{{- end }}
+
+{{- define "configClaimName" -}}
+  {{- if .Values.persistence.config.claimName }}
+    {{- .Values.persistence.config.claimName -}}
+  {{- else }}
+    {{- printf "%s-%s" ( include "fullname" . ) "config" -}}
+  {{- end }}
+{{- end }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -108,23 +132,23 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: TRANSCODE_PVC
-{{- if .Values.persistence.transcode.claimName }}
-          value: "{{ .Values.persistence.transcode.claimName }}"
-{{- else }}
-          value: "{{ template "fullname" . }}-transcode"
-{{- end }}
+          value: {{ template "transcodeClaimName" . }}
+        {{- if .Values.persistence.transcode.subPath }}
+        - name: TRANSCODE_SUBPATH
+          value: {{ .Values.persistence.transcode.subPath }}
+        {{ end }}
         - name: DATA_PVC
-{{- if .Values.persistence.data.claimName }}
-          value: "{{ .Values.persistence.data.claimName }}"
-{{- else }}
-          value: "{{ template "fullname" . }}-data"
-{{- end }}
+          value: {{ template "dataClaimName" . }}
+        {{- if .Values.persistence.data.subPath }}
+        - name: DATA_SUBPATH
+          value: {{ .Values.persistence.data.subPath }}
+        {{ end }}
         - name: CONFIG_PVC
-{{- if .Values.persistence.config.claimName }}
-          value: "{{ .Values.persistence.config.claimName }}"
-{{- else }}
-          value: "{{ template "fullname" . }}-config"
-{{- end }}
+          value: {{ template "configClaimName" . }}
+        {{- if .Values.persistence.config.subPath }}
+        - name: CONFIG_SUBPATH
+          value: {{ .Values.persistence.config.subPath }}
+        {{ end }}
         volumeMounts:
         - name: data
           mountPath: /data
@@ -155,26 +179,14 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-{{- if .Values.persistence.data.claimName }}
-          claimName: "{{ .Values.persistence.data.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-data"
-{{- end }}
+          claimName: {{ template "dataClaimName" . }}
       - name: config
         persistentVolumeClaim:
-{{- if .Values.persistence.config.claimName }}
-          claimName: "{{ .Values.persistence.config.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-config"
-{{- end }}
+          claimName: {{ template "configClaimName" . }}
       - name: transcode
 {{- if .Values.persistence.transcode.enabled }}
         persistentVolumeClaim:
-{{- if .Values.persistence.transcode.claimName }}
-          claimName: "{{ .Values.persistence.transcode.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-transcode"
-{{- end }}
+          claimName: {{ template "transcodeClaimName" . }}
 {{- else }}
         emptyDir: {}
 {{- end }}
